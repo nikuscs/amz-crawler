@@ -1,6 +1,7 @@
 # amz-crawler
 
 ![CI](https://github.com/nikuscs/amz-crawler/actions/workflows/ci.yml/badge.svg)
+![Release](https://img.shields.io/github/v/release/nikuscs/amz-crawler)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 **Fast Rust CLI to search Amazon products with browser-grade TLS fingerprinting.**

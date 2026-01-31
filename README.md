@@ -1,4 +1,4 @@
-# amz-crawler
+# 🦎 amz-crawler
 
 ![CI](https://github.com/nikuscs/amz-crawler/actions/workflows/ci.yml/badge.svg)
 ![Release](https://img.shields.io/github/v/release/nikuscs/amz-crawler)

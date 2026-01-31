@@ -1,218 +1,150 @@
-# Amazon Product Search
+# amz-crawler
 
-Fast Rust CLI to search Amazon products with TLS fingerprint emulation.
+**Fast Rust CLI to search Amazon products with browser-grade TLS fingerprinting.**
+
+Search products, filter by price/rating, compare prices across 15 regions, and find the cheapest EU deals with TropicalPrice integration.
+
+## Why?
+
+- **Stealth** — Chrome 131 TLS fingerprint via [wreq](https://github.com/pwnwriter/wreq). Bypasses basic bot detection.
+- **Fast** — Native Rust. No browser overhead.
+- **EU Price Comparison** — Find the cheapest Amazon store across ES/DE/FR/IT/UK/NL with TropicalPrice.
+- **Flexible Output** — Table, JSON, Markdown, CSV. Pipe to `jq`, feed to scripts, or read in terminal.
 
 ## Install
 
 ```bash
-cargo build --release
+# From source (requires Rust)
+cargo install --git https://github.com/nikuscs/amz-crawler --features tropical
 
-# With TropicalPrice EU comparison (optional)
+# Or clone and build
+git clone https://github.com/nikuscs/amz-crawler
+cd amz-crawler
 cargo build --release --features tropical
 ```
 
-## Quick Search
+Pre-built binaries available in [Releases](https://github.com/nikuscs/amz-crawler/releases).
+
+## Usage
+
+### Search Amazon
 
 ```bash
-amz-crawler search "wireless mouse"
+amz-crawler search "mechanical keyboard"
 amz-crawler search "laptop" --max 10 --min-price 500 --max-price 1000
-amz-crawler search "keyboard" --min-rating 4.0 --prime-only
-amz-crawler search "headphones" --no-sponsored --keywords bluetooth,wireless
-amz-crawler search "monitor" --exclude refurbished,renewed
-amz-crawler search "ps5" --format json
-amz-crawler search "macbook" --format markdown
+amz-crawler search "headphones" --min-rating 4.5 --prime-only --no-sponsored
+amz-crawler search "monitor" --keywords ips,4k --exclude refurbished
+amz-crawler --region de search "kaffeemaschine"
 ```
+
+### Product Details
+
+```bash
+amz-crawler product B08N5WRWNW
+amz-crawler product B08N5WRWNW B09HMZ6S1Y B0BSHF7WHW  # Multiple ASINs
+```
+
+### EU Price Comparison (TropicalPrice)
+
+Find the cheapest price across EU Amazon stores:
+
+```bash
+# Search TropicalPrice catalog
+amz-crawler tropical "sony wh-1000xm5" --max 5
+
+# Compare specific product across EU stores
+amz-crawler compare B0C8PSMPTH
+```
+
+**Output:**
+```
+📦 Sony WH-1000XM5 Wireless Headphones
+
+Best at 🇩🇪 DE: €279.99
+🛒 https://www.amazon.de/dp/B0C8PSMPTH
+
+🏆🇩🇪 DE: €279.99
+  🇪🇸 ES: €329.99 (+€50, +18%)
+  🇫🇷 FR: €339.99 (+€60, +21%)
+  🇮🇹 IT: €349.99 (+€70, +25%)
+
+💰 Max savings: €70.00 (25%)
+
+🔗 Links:
+   🇩🇪 DE: https://www.amazon.de/dp/B0C8PSMPTH
+   🇪🇸 ES: https://www.amazon.es/dp/B0C8PSMPTH
+   🇫🇷 FR: https://www.amazon.fr/dp/B0C8PSMPTH
+   🇮🇹 IT: https://www.amazon.it/dp/B0C8PSMPTH
+```
+
+### Regions
+
+```bash
+amz-crawler regions  # List all supported regions
+```
+
+**Supported:** `us` `uk` `de` `fr` `es` `it` `ca` `au` `jp` `in` `br` `mx` `nl` `se` `pl`
+
+## Options
+
+### Search Filters
 
 | Flag | Description |
 |------|-------------|
 | `--max` | Max results (default: 20) |
-| `--min-price` | Minimum price filter |
-| `--max-price` | Maximum price filter |
-| `--min-rating` | Minimum star rating (1.0-5.0) |
-| `--prime-only` | Only Prime-eligible products |
+| `--min-price` | Minimum price |
+| `--max-price` | Maximum price |
+| `--min-rating` | Minimum rating (1.0-5.0) |
+| `--prime-only` | Only Prime-eligible |
 | `--no-sponsored` | Exclude sponsored listings |
 | `--keywords` | Required keywords in title (comma-separated) |
-| `--exclude` | Excluded keywords from title (comma-separated) |
-| `--format` | table, json, markdown, csv |
+| `--exclude` | Exclude keywords from title (comma-separated) |
 
-## Product Lookup
-
-```bash
-amz-crawler product B08N5WRWNW
-amz-crawler product B08N5WRWNW B09HMZ6S1Y B0BSHF7WHW
-amz-crawler product B08N5WRWNW --format json
-```
-
-## EU Price Comparison (TropicalPrice)
-
-Compare prices across EU Amazon stores. Requires `--features tropical`.
-
-```bash
-# Compare a product across EU stores
-amz-crawler compare B08N5WRWNW
-
-# Search TropicalPrice for EU products
-amz-crawler tropical "iphone 15" --max 10
-
-# JSON output for scripts/LLMs
-amz-crawler compare B08N5WRWNW --format json
-```
+### Global Options
 
 | Flag | Description |
 |------|-------------|
-| `--max` | Max search results (default: 10) |
-| `--format` | table, json |
-
-Example output:
-```
-Best at 🇩🇪 DE: €89.99
-🛒 https://www.amazon.de/dp/B08N5WRWNW
-
-🏆🇩🇪 DE: €89.99
-  🇪🇸 ES: €94.99 (+€5, +6%)
-  🇫🇷 FR: €99.99 (+€10, +11%)
-  🇮🇹 IT: €102.99 (+€13, +14%) ⚠️
-```
-
-## Regions
-
-```bash
-amz-crawler --region uk search "tea kettle"
-amz-crawler --region de search "kaffeemaschine"
-amz-crawler regions  # list all regions
-```
-
-Supported: `us` `uk` `de` `fr` `es` `it` `ca` `au` `jp` `in` `br` `mx` `nl` `se` `pl`
-
-## Proxy
-
-```bash
-amz-crawler --proxy "socks5://127.0.0.1:1080" search "laptop"
-amz-crawler --proxy "http://user:pass@proxy.com:8080" search "phone"
-```
-
-## Request Delay
-
-```bash
-amz-crawler --delay 3000 search "laptop"  # 3 second delay between requests
-```
-
-## Global Flags
-
-| Flag | Description |
-|------|-------------|
-| `--config` | Config file path |
 | `--region` | Amazon region (default: us) |
+| `--format` | Output: table, json, markdown, csv |
 | `--proxy` | Proxy URL (socks5/http) |
-| `--delay` | Delay between requests in ms (default: 2000) |
-| `--format` | Output format (default: table) |
-| `--verbose` | Enable debug logging |
-
-## Output Formats
-
-| Format | Flag | Use Case |
-|--------|------|----------|
-| Table | `--format table` | CLI output (default) |
-| JSON | `--format json` | APIs, scripts |
-| Markdown | `--format markdown` | LLMs, documentation |
-| CSV | `--format csv` | Spreadsheets, data analysis |
-
-JSON output includes: `asin`, `title`, `price`, `original_price`, `currency`, `rating`, `review_count`, `is_prime`, `is_sponsored`, `is_amazon_choice`, `in_stock`, `brand`, `url`, `image_url`
-
-## Examples
-
-### Example 1: Find cheap wireless mice with good ratings
-
-```bash
-amz-crawler search "wireless mouse" \
-  --max 20 \
-  --min-price 10 \
-  --max-price 50 \
-  --min-rating 4.0 \
-  --prime-only \
-  --no-sponsored
-```
-
-### Example 2: Compare laptop prices across EU (with tropical feature)
-
-```bash
-# Search for a laptop on TropicalPrice
-amz-crawler tropical "macbook air m3" --max 5
-
-# Compare specific ASIN across EU stores
-amz-crawler compare B0CX23V2ZK --format json
-```
-
-### Example 3: JSON output for API/LLM integration
-
-```bash
-# Get results as JSON
-amz-crawler search "rust programming book" --max 5 --format json
-
-# Get results as markdown (for LLMs)
-amz-crawler search "rust programming book" --max 5 --format markdown
-```
-
-### Example 4: Search with proxy for IP rotation
-
-```bash
-amz-crawler \
-  --proxy "socks5://127.0.0.1:1080" \
-  --delay 3000 \
-  search "gaming laptop" \
-  --max 30 \
-  --min-rating 4.5
-```
-
-### Example 5: UK region with specific keywords
-
-```bash
-amz-crawler --region uk search "electric kettle" \
-  --keywords stainless,steel \
-  --exclude plastic \
-  --prime-only
-```
+| `--delay` | Request delay in ms (default: 2000) |
+| `--config` | Config file path |
 
 ## Configuration
 
-Create `config.toml`:
+Create `~/.config/amz-crawler/config.toml`:
 
 ```toml
-region = "us"
-# proxy = "socks5://127.0.0.1:1080"
+region = "es"
 delay_ms = 2000
 delay_jitter_ms = 3000
 max_results = 20
 format = "table"
-prime_only = false
-no_sponsored = false
+# proxy = "socks5://127.0.0.1:1080"
 ```
 
-Environment variables:
-- `AMZ_REGION` - Override region
-- `AMZ_PROXY` - Proxy URL
-- `AMZ_DELAY` - Request delay in ms
+Environment variables: `AMZ_REGION`, `AMZ_PROXY`, `AMZ_DELAY`
 
-## Features
+## Output Formats
 
-- TLS fingerprint emulation (Chrome 131 via wreq)
-- 15 Amazon regions with proper localization
-- Smart price parsing (handles EU formats like 1.234,56 €)
-- Price range and rating filters
-- Prime-only and sponsored exclusion
-- Keyword filtering (include/exclude)
-- Multiple output formats
-- Proxy support (SOCKS5/HTTP)
-- Random request jitter for human-like behavior
-- EU price comparison via TropicalPrice (optional feature)
+```bash
+amz-crawler search "laptop" --format json      # JSON (for scripts)
+amz-crawler search "laptop" --format markdown  # Markdown (for LLMs)
+amz-crawler search "laptop" --format csv       # CSV (for spreadsheets)
+amz-crawler search "laptop" --format table     # Table (default)
+```
 
-## Anti-Bot Measures
+## How It Works
 
-- Browser TLS fingerprinting (JA3/JA4)
-- HTTP/2 settings matching real browsers
-- Full browser header set (Sec-Fetch-*, etc.)
-- Cookie persistence
-- Random delays with jitter (2-5s default)
+1. **TLS Fingerprinting** — Uses [wreq](https://github.com/pwnwriter/wreq) to emulate Chrome 131 TLS handshake (JA3/JA4).
+2. **Full Browser Headers** — Sends complete header set including Sec-Fetch-*, cookies, etc.
+3. **Request Jitter** — Random delays (2-5s default) to appear human.
+4. **Smart Parsing** — Handles regional price formats (1.234,56 € vs $1,234.56).
+
+## Related
+
+- [TropicalPrice](https://tropicalprice.com) — EU Amazon price comparison service
+- [wreq](https://github.com/pwnwriter/wreq) — Rust HTTP client with TLS fingerprinting
 
 ## License
 

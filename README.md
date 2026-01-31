@@ -1,6 +1,18 @@
 # amz-crawler
 
+![CI](https://github.com/nikuscs/amz-crawler/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
 **Fast Rust CLI to search Amazon products with browser-grade TLS fingerprinting.**
+
+> **Disclaimer:** This project is for **educational purposes and AI automation research only**.
+> The authors are not responsible for any misuse or for any damages resulting from the use of this tool.
+> Users are solely responsible for ensuring compliance with applicable laws and the terms of service
+> of any websites accessed. This software is provided "as-is" without warranty of any kind.
+>
+> If you are a rights holder and wish to have this project removed, please [contact me](https://github.com/nikuscs).
+
+> **Note:** This project was partially developed with AI assistance and may contain bugs or unexpected behavior. Use at your own risk.
 
 Search products, filter by price/rating, compare prices across 15 regions, and find the cheapest EU deals with TropicalPrice integration.
 

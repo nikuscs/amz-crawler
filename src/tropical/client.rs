@@ -37,6 +37,7 @@ impl TropicalClient {
         let client = Client::builder()
             .timeout(Duration::from_secs(15))
             .connect_timeout(Duration::from_secs(10))
+            .redirect(wreq::redirect::Policy::limited(10))
             .build()?;
 
         Ok(Self { client, base_url })

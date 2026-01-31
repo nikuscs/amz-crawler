@@ -1,0 +1,45 @@
+# amz-crawler configuration file
+# Copy to config.toml or ~/.config/amz-crawler/config.toml
+
+# Amazon region (us, uk, de, fr, es, it, ca, au, jp, in, br, mx, nl, se, pl)
+region = "us"
+
+# Proxy URL (optional)
+# Supports HTTP, HTTPS, and SOCKS5 proxies
+# proxy = "socks5://127.0.0.1:1080"
+# proxy = "http://user:pass@proxy.example.com:8080"
+
+# Delay between requests in milliseconds
+# Higher values are safer but slower
+delay_ms = 2000
+
+# Random jitter added to delay (0 to this value in ms)
+# Makes request timing more human-like
+delay_jitter_ms = 3000
+
+# Maximum number of results to fetch per search
+max_results = 20
+
+# Output format (table, json, markdown, csv)
+format = "table"
+
+# ----- Filters (applied to all searches) -----
+
+# Price range filter
+# min_price = 10.0
+# max_price = 100.0
+
+# Minimum star rating (1.0-5.0)
+# min_rating = 4.0
+
+# Only show Prime-eligible products
+prime_only = false
+
+# Exclude sponsored listings
+no_sponsored = false
+
+# Required keywords in title (all must match)
+# keywords = ["wireless", "bluetooth"]
+
+# Excluded keywords from title (none must match)
+# exclude_keywords = ["refurbished", "renewed", "used"]

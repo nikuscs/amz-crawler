@@ -1,0 +1,19 @@
+# Rust
+/target/
+
+# Config (may contain proxy credentials)
+config.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Claude local settings
+.claude/settings.local.json
+.conductor/

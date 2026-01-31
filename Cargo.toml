@@ -1,0 +1,49 @@
+[package]
+name = "amz-crawler"
+version = "0.1.0"
+edition = "2021"
+description = "Fast, stateless Amazon product search CLI"
+license = "MIT"
+repository = "https://github.com/yourusername/amz-crawler"
+keywords = ["amazon", "search", "cli", "scraper"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+
+# USE WREQ NOT REQWEST - TLS fingerprint emulation for anti-bot bypass
+wreq = { version = "6.0.0-rc.27", features = ["cookies", "gzip", "brotli", "socks"] }
+wreq-util = "3.0.0-rc.9"
+
+scraper = "0.23"
+clap = { version = "4", features = ["derive", "env"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rand = "0.9"
+urlencoding = "2"
+dirs = "6"
+async-trait = "0.1"
+regex-lite = { version = "0.1", optional = true }
+
+[features]
+default = []
+tropical = ["regex-lite"]  # Enable TropicalPrice EU price comparison
+
+[dev-dependencies]
+tempfile = "3"
+wiremock = "0.6"
+tokio-test = "0.4"
+
+[[bin]]
+name = "amz-crawler"
+path = "src/main.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

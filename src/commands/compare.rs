@@ -93,6 +93,10 @@ fn format_search_results(products: &[TropicalProduct]) -> String {
 fn format_comparison(data: &PriceComparison) -> String {
     let mut lines = Vec::new();
 
+    // Product title
+    lines.push(format!("📦 {}", data.title));
+    lines.push(String::new());
+
     // Best price summary
     if let Some(cheapest) = data.cheapest() {
         let marketplace = if cheapest.is_marketplace { " ⚠️" } else { "" };
@@ -150,6 +154,13 @@ fn format_comparison(data: &PriceComparison) -> String {
             lines.push(String::new());
             lines.push(format!("💰 Max savings: €{:.2} ({:.0}%)", savings, pct));
         }
+    }
+
+    // All store links at the end
+    lines.push(String::new());
+    lines.push("🔗 Links:".to_string());
+    for p in &data.prices {
+        lines.push(format!("   {} {}: {}", p.flag(), p.country, p.amazon_url));
     }
 
     lines.join("\n")

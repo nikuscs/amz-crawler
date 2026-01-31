@@ -154,8 +154,10 @@ amz-crawler search "laptop" --format table     # Table (default)
 3. **Request Jitter** — Random delays (2-5s default) to appear human.
 4. **Smart Parsing** — Handles regional price formats (1.234,56 € vs $1,234.56).
 
-## Related
+## Related Projects
 
+- [⚖️ kante-kusta](https://github.com/nikuscs/kante-kusta) — KuantoKusta.pt price comparison CLI
+- [🕵️ olx-tracker](https://github.com/nikuscs/olx-tracker) — Track OLX.pt listings and get alerts on deals
 - [TropicalPrice](https://tropicalprice.com) — EU Amazon price comparison service
 - [wreq](https://github.com/pwnwriter/wreq) — Rust HTTP client with TLS fingerprinting
 

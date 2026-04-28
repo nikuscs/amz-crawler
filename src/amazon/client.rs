@@ -4,7 +4,7 @@ use crate::amazon::regions::Region;
 use crate::config::Config;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use rand::Rng;
+use rand::RngExt;
 use std::time::Duration;
 use tracing::{debug, info, warn};
 use wreq::Client;

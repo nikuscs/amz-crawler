@@ -53,8 +53,8 @@ amz-crawler --region de search "kaffeemaschine"
 ### Product Details
 
 ```bash
-amz-crawler product B08N5WRWNW
-amz-crawler product B08N5WRWNW B09HMZ6S1Y B0BSHF7WHW  # Multiple ASINs
+amz-crawler product 1718504446
+amz-crawler product 1718504446 1492052590 1718501854  # Multiple ASINs
 ```
 
 ### EU Price Comparison (TropicalPrice)

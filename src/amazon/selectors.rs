@@ -214,7 +214,9 @@ pub mod product {
     /// Current price on detail page.
     pub static PRICE: LazyLock<Selector> = LazyLock::new(|| {
         Selector::parse(
-            "#corePrice_feature_div .a-price .a-offscreen, \
+            "span.priceToPay span[aria-hidden='true'], \
+             span.apex-pricetopay-value span[aria-hidden='true'], \
+             #corePrice_feature_div .a-price .a-offscreen, \
              #priceblock_ourprice, \
              #priceblock_dealprice, \
              .a-price .a-offscreen",

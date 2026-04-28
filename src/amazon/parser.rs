@@ -7,6 +7,54 @@ use anyhow::{Context, Result};
 use scraper::{ElementRef, Html};
 use tracing::{debug, trace, warn};
 
+/// Heuristic to discard non-brand text matched by the broad search BRAND
+/// selectors (badges, delivery dates, "no offers" placeholders).
+fn looks_like_brand(s: &str) -> bool {
+    let lower = s.to_lowercase();
+    const BAD: &[&str] = &[
+        "amazon's choice",
+        "overall pick",
+        "best seller",
+        "no featured",
+        "no offers",
+        "in stock",
+        "out of stock",
+        "free delivery",
+        "free shipping",
+        "free returns",
+        "delivery",
+        "ships",
+        "shipping",
+        "$",
+        "€",
+        "£",
+        "¥",
+        "eur ",
+        "usd ",
+        "gbp ",
+        "jpy ",
+        "limited time",
+        "deal",
+        "save",
+        "off",
+        "coupon",
+        "subscribe",
+        "part of:",
+    ];
+    for b in BAD {
+        if lower.contains(b) {
+            return false;
+        }
+    }
+    const DAYS: &[&str] = &["mon,", "tue,", "wed,", "thu,", "fri,", "sat,", "sun,"];
+    for d in DAYS {
+        if lower.contains(d) {
+            return false;
+        }
+    }
+    true
+}
+
 /// Parser for Amazon HTML pages.
 pub struct Parser {
     region: Region,
@@ -90,10 +138,14 @@ impl Parser {
         // Parse brand
         let brand = document.select(&product::BRAND).next().map(|e| {
             let text = e.text().collect::<String>();
-            text.trim()
+            let normalized = text.split_whitespace().collect::<Vec<_>>().join(" ");
+            normalized
+                .trim()
                 .trim_start_matches("Brand:")
                 .trim_start_matches("Visit the")
                 .trim_end_matches("Store")
+                .trim()
+                .trim_start_matches("by ")
                 .trim()
                 .to_string()
         });
@@ -161,19 +213,8 @@ impl Parser {
             .map(|e| e.text().collect::<String>().trim().to_string())
             .unwrap_or_else(|| "Unknown".to_string());
 
-        // Parse URL
-        let url = element
-            .select(&search::TITLE_LINK)
-            .next()
-            .and_then(|e| e.value().attr("href"))
-            .map(|href| {
-                if href.starts_with("http") {
-                    href.to_string()
-                } else {
-                    format!("{}{}", self.region.base_url(), href)
-                }
-            })
-            .unwrap_or_else(|| format!("{}/dp/{}", self.region.base_url(), asin));
+        // Build canonical product URL from ASIN
+        let url = format!("{}/dp/{}", self.region.base_url(), asin);
 
         // Parse image
         let image_url = element
@@ -196,11 +237,24 @@ impl Parser {
         // Check for Amazon's Choice
         let is_amazon_choice = self.is_amazon_choice(element);
 
-        // Parse brand
-        let brand = element
-            .select(&search::BRAND)
-            .next()
-            .map(|e| e.text().collect::<String>().trim().trim_start_matches("by ").to_string());
+        // Parse brand. Amazon doesn't tag brand cleanly on search cards, so
+        // filter out badges, delivery dates, and "no offer" text that share
+        // the same selectors.
+        let brand = element.select(&search::BRAND).find_map(|e| {
+            let text = e.text().collect::<String>();
+            let cleaned = text
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ")
+                .trim_start_matches("by ")
+                .trim()
+                .to_string();
+            if cleaned.is_empty() || !looks_like_brand(&cleaned) {
+                None
+            } else {
+                Some(cleaned)
+            }
+        });
 
         // Check stock (assume in stock if price is shown)
         let in_stock = price.is_some();
@@ -255,10 +309,10 @@ impl Parser {
 
     /// Parses price from a product detail page.
     fn parse_product_page_price(&self, document: &Html) -> Option<Price> {
-        let current_text =
-            document.select(&product::PRICE).next().map(|e| e.text().collect::<String>())?;
-
-        let current = self.parse_price_value(&current_text)?;
+        let current = document
+            .select(&product::PRICE)
+            .map(|e| e.text().collect::<String>())
+            .find_map(|t| self.parse_price_value(&t))?;
 
         let original = document
             .select(&product::PRICE_ORIGINAL)
@@ -425,6 +479,19 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_looks_like_brand_filters_garbage() {
+        assert!(!looks_like_brand("Amazon's Choice: Overall Pick"));
+        assert!(!looks_like_brand("Mon, May 11"));
+        assert!(!looks_like_brand("EUR 131.99"));
+        assert!(!looks_like_brand("$29.99"));
+        assert!(!looks_like_brand("No featured offers available"));
+        assert!(!looks_like_brand("Part of: Build Anything Anywhere (11 books)"));
+        assert!(!looks_like_brand("FREE delivery"));
+        assert!(looks_like_brand("Anker"));
+        assert!(looks_like_brand("Steve Klabnik"));
+    }
 
     // Price parsing tests
 
